@@ -14,4 +14,3 @@ start()
     console.log('App occured during startup', error);
   });
 
-  //test emma emma 2
