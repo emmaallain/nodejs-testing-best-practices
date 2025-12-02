@@ -1,0 +1,54 @@
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches: [master]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      unit: ${{ steps.filter.outputs.unit }}
+      nestjs: ${{ steps.filter.outputs.nestjs }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            unit:
+              - 'example-application/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'jest.config.js'
+            nestjs:
+              - 'recipes/**'
+              - 'tsconfig.json'
+
+  build:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.unit == 'true' || needs.changes.outputs.nestjs == 'true' }}
+    steps:
+      # ...
+
+  test-unit:
+    runs-on: ubuntu-latest
+    needs: [changes, build]
+    if: >
+      github.ref == 'refs/heads/dev' &&
+      needs.changes.outputs.unit == 'true'
+    steps:
+      # npm test
+
+  test-nestjs:
+    runs-on: ubuntu-latest
+    needs: [changes, build]
+    if: >
+      github.ref == 'refs/heads/main' &&
+      needs.changes.outputs.nestjs == 'true'
+    steps:
+      # npm run test:nestjs
